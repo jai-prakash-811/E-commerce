@@ -18,14 +18,16 @@ body {
 
 /* //........top text ........// */
 
+
 :root {
     /* //....... Color ........// */
-    --primary-color: #22010b;
+    --primary-color: #54071e;
     --light-black: rgba(209, 27, 18, 0.89);
     --black: #000;
     --white: #ffffff;
-    --grey: #101010;
+    --grey: #ada6a6;
 }
+
 
 
 /* //........top text ........// */
