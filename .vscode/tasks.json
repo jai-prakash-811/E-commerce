@@ -19,6 +19,18 @@
 				"build"
 			],
 			"isBackground": false
+		},
+		{
+			"label": "Build E-commerce",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
 		}
 	]
 }

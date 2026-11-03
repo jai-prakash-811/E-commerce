@@ -7,3 +7,7 @@ dist
 .DS_Store
 server/.env
 client/.env
+
+.env
+node_modules
+dist
