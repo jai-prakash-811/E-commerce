@@ -1,10 +1,77 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from './api.js';
+import { heroSlides } from './heroSlides.js';
 
 const StoreContext = createContext(null);
 const money = (value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
 const imageFallback = 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80';
+
+// Hero Slider Component
+function HeroSlider() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState('next');
+
+  const slides = heroSlides;
+
+  const goToSlide = useCallback((index) => {
+    setDirection(index > currentIndex ? 'next' : 'prev');
+    setCurrentIndex(index);
+  }, [currentIndex]);
+
+  const goNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % slides.length);
+    setDirection('next');
+  }, [slides.length]);
+
+  const goPrev = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
+    setDirection('prev');
+  }, [slides.length]);
+
+  // Auto-slide every 2 seconds
+  useEffect(() => {
+    const interval = setInterval(goNext, 2000);
+    return () => clearInterval(interval);
+  }, [goNext]);
+
+  const currentSlide = slides[currentIndex];
+
+  return (
+    <section className="hero-slider">
+      <div className="slider-track">
+        {slides.map((slide, index) => (
+          <div
+            key={slide.id}
+            className={`slider-slide ${index === currentIndex ? 'active' : ''} ${direction === 'next' && index === (currentIndex - 1 + slides.length) % slides.length ? 'exiting-prev' : ''} ${direction === 'prev' && index === (currentIndex + 1) % slides.length ? 'exiting-next' : ''}`}
+            style={{ backgroundImage: `url(${slide.image})` }}
+          >
+            <div className="slider-content shell">
+              <span className="slider-category">{slide.brand} · {slide.category}</span>
+              <h2>{slide.title}</h2>
+              <p>{slide.subtitle}</p>
+              <Link to={slide.link} className="button button-light">{slide.cta} <i className="bx bx-right-arrow-alt" /></Link>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="slider-nav">
+        <button className="slider-arrow prev" onClick={goPrev} aria-label="Previous slide"><i className="bx bx-chevron-left" /></button>
+        <div className="slider-dots">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              className={`slider-dot ${index === currentIndex ? 'active' : ''}`}
+              onClick={() => goToSlide(index)}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+        <button className="slider-arrow next" onClick={goNext} aria-label="Next slide"><i className="bx bx-chevron-right" /></button>
+      </div>
+    </section>
+  );
+}
 
 function useStore() {
   return useContext(StoreContext);
@@ -108,7 +175,7 @@ function Header() {
         <div className="header-inner shell">
           <Link className="brand" to="/"><span className="brand-symbol">s.</span><span>shopverse</span></Link>
           <nav className="main-nav">
-            <Link to="/">Home</Link><Link to="/shop">Shop</Link><Link to="/shop?category=Accessories">Accessories</Link><a href="/#story">Our story</a>
+            <Link to="/">Home</Link><Link to="/shop">Shop</Link><Link to="/shop?category=Footwear">Footwear</Link><Link to="/shop?category=Clothing">Clothing</Link><a href="/#story">Our story</a>
           </nav>
           <div className="header-actions">
             <Link className="icon-link wishlist-link" to="/wishlist" aria-label="Wishlist"><i className="bx bx-heart" /></Link>
@@ -121,7 +188,7 @@ function Header() {
             <Link className="bag-link" to="/cart"><i className="bx bx-shopping-bag" /><span>Bag ({count})</span></Link>
             <button className="mobile-menu" aria-label="Toggle navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}><i className={menuOpen ? 'bx bx-x' : 'bx bx-menu'} /></button>
           </div>
-          {menuOpen && <nav className="mobile-dropdown"><Link to="/" onClick={() => setMenuOpen(false)}>Home</Link><Link to="/shop" onClick={() => setMenuOpen(false)}>Shop all</Link><Link to="/shop?category=Accessories" onClick={() => setMenuOpen(false)}>Accessories</Link><Link to="/wishlist" onClick={() => setMenuOpen(false)}>Favourites</Link>{user?.role === 'admin' && <Link to="/admin" onClick={() => setMenuOpen(false)}>Store admin</Link>}{user ? <button onClick={() => { signOut(); setMenuOpen(false); }}>Sign out</button> : <Link to="/login" onClick={() => setMenuOpen(false)}>Sign in</Link>}</nav>}
+          {menuOpen && <nav className="mobile-dropdown"><Link to="/" onClick={() => setMenuOpen(false)}>Home</Link><Link to="/shop" onClick={() => setMenuOpen(false)}>Shop all</Link><Link to="/shop?category=Footwear" onClick={() => setMenuOpen(false)}>Footwear</Link><Link to="/shop?category=Clothing" onClick={() => setMenuOpen(false)}>Clothing</Link><Link to="/wishlist" onClick={() => setMenuOpen(false)}>Favourites</Link>{user?.role === 'admin' && <Link to="/admin" onClick={() => setMenuOpen(false)}>Store admin</Link>}{user ? <button onClick={() => { signOut(); setMenuOpen(false); }}>Sign out</button> : <Link to="/login" onClick={() => setMenuOpen(false)}>Sign in</Link>}</nav>}
         </div>
       </header>
     </>
@@ -169,22 +236,13 @@ function Home() {
   }, []);
   return (
     <main>
-      <section className="hero shell">
-        <div className="hero-copy">
-          <p className="eyebrow"><span /> The new everyday</p>
-          <h1>Good things,<br /><em>well chosen.</em></h1>
-          <p className="hero-description">Thoughtful pieces for the way you live now. Considered design, everyday ease, and quality that lasts.</p>
-          <Link to="/shop" className="button button-dark">Explore the collection <i className="bx bx-right-arrow-alt" /></Link>
-          <div className="hero-note"><span className="avatar-stack"><i>J</i><i>M</i><i>A</i></span><span>Loved by 12,000+ happy customers</span></div>
-        </div>
-        <div className="hero-art"><img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1400&q=85" alt="ShopVerse seasonal fashion collection" /><div className="hero-stamp">MADE FOR<br />YOUR EVERYDAY</div></div>
-      </section>
-      <section className="trust-strip"><div className="shell trust-items"><span><i className="bx bx-package" /> Thoughtful quality</span><span><i className="bx bx-refresh" /> Easy 30-day returns</span><span><i className="bx bx-leaf" /> Better by design</span><span><i className="bx bx-lock-alt" /> Secure checkout</span></div></section>
+      <HeroSlider />
+      <section className="trust-strip"><div className="shell trust-items"><span><i className="bx bx-package" /> Premium materials</span><span><i className="bx bx-refresh" /> Easy 30-day returns</span><span><i className="bx bx-run" /> Built for movement</span><span><i className="bx bx-lock-alt" /> Secure checkout</span></div></section>
       <section className="section shell" id="collection">
-        <div className="section-top"><div><p className="eyebrow">A few good things</p><h2>Meet your new favourites.</h2></div><Link to="/shop" className="text-link">Shop all pieces <i className="bx bx-right-arrow-alt" /></Link></div>
+        <div className="section-top"><div><p className="eyebrow">New arrivals</p><h2>Fresh picks for the season.</h2></div><Link to="/shop" className="text-link">View all <i className="bx bx-right-arrow-alt" /></Link></div>
         <ProductList products={products} loading={loading} error={error} />
       </section>
-      <section className="story-band" id="story"><div className="story-image"><img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80" alt="Carefully curated ShopVerse collection" /></div><div className="story-copy"><p className="eyebrow">Less, but lovely</p><h2>Everyday pieces.<br /><em>Extraordinary feel.</em></h2><p>We believe getting dressed should feel easy. Discover carefully considered essentials that bring a little more joy to the everyday.</p><Link className="text-link" to="/shop">Our point of view <i className="bx bx-right-arrow-alt" /></Link></div></section>
+      <section className="story-band" id="story"><div className="story-image"><img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80" alt="Footwear and apparel collection" /></div><div className="story-copy"><p className="eyebrow">Move freely</p><h2>Gear that keeps up.<br /><em>Style that stands out.</em></h2><p>Whether you're hitting the trails, the gym, or the streets — our footwear and apparel are built for motion without compromising on looks.</p><Link className="text-link" to="/shop">Explore our story <i className="bx bx-right-arrow-alt" /></Link></div></section>
       <section className="newsletter shell"><div><p className="eyebrow">A note from us</p><h2>Good things, occasionally.</h2><p>New arrivals and thoughtful little extras. No noise, just the good stuff.</p></div><form onSubmit={(event) => { event.preventDefault(); event.currentTarget.reset(); window.alert('Thanks for subscribing!'); }}><input type="email" placeholder="Your email address" aria-label="Email address" required /><button type="submit" aria-label="Subscribe"><i className="bx bx-right-arrow-alt" /></button></form></section>
     </main>
   );
@@ -210,7 +268,7 @@ function Shop() {
     value ? next.set(key, value) : next.delete(key);
     setParams(next);
   };
-  return <main className="shop-page shell"><div className="page-intro"><p className="eyebrow">Find your everyday</p><h1>The collection</h1><p>Good design, easy living. Find something you'll love to reach for.</p></div>
+  return <main className="shop-page shell"><div className="page-intro"><p className="eyebrow">Footwear & Apparel</p><h1>The collection</h1><p>Sports shoes, sneakers, jackets, shirts, tees, jeans, and trousers — curated for performance and style.</p></div>
     <div className="shop-toolbar"><span>{data.products.length} considered pieces</span><div className="filters"><input value={search} onChange={(event) => setFilter('search', event.target.value)} placeholder="Search pieces…" aria-label="Search products" /><select value={category} onChange={(event) => setFilter('category', event.target.value)} aria-label="Filter category"><option value="">All categories</option>{data.categories.map((item) => <option key={item} value={item}>{item}</option>)}</select><select value={sort} onChange={(event) => setFilter('sort', event.target.value)} aria-label="Sort products"><option value="featured">Featured</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="rating">Top rated</option></select></div></div>
     <ProductList products={data.products} loading={loading} error={error} />
   </main>;

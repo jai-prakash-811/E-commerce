@@ -409,4 +409,3 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-rror: Client is not connected. Call start() first. at get rpc (file:///c:/Users/jprak/AppData/Local/Programs/Microsoft%20VS%20Code/261c84cb1e/resources/app/node_modules.asar/@github/copilot-sdk/dist/client.js:321:13) at gt.resolveChatConfig (file:///c:/Users/jprak/AppData/Local/Programs/Microsoft%20VS%20Code/261c84cb1e/resources/app/out/vs/platform/agentHost/node/agentHostMain.js:1241:153973) at async Promise.all (index 0) at async xT._withWorktreeConfigContribution (file:///c:/Users/jprak/AppData/Local/Programs/Microsoft%20VS%20Code/261c84cb1e/resources/app/out/vs/platform/agentHost/node/agentHostMain.js:1397:218652) at async xT._withHostSessionConfigContributions (file:///c:/Users/jprak/AppData/Loacl/
